@@ -1,0 +1,26 @@
+This directory contains a simple u-boot script that checks the pinout of the
+Olimex Interface board 2005-F.
+
+There are 4 leds on the boards the operator should look at. The red power led
+immediatly lights up when power has been applied. When the test is finished
+the green led is solid.
+Uppon error, The amber leds indicate the error state. Currently they only blink.
+
+To build a new image, the following steps need to be done, note filenames
+may be different, for example /dev/loop0 etc. While a working u-boot is
+supplied in this repo, any u-boot should work.
+
+Create an sd card image of about 2 MiB.
+dd if=/dev/zero of=oib_testbench.img bs=1M count=2
+/sbin/sfdisk -uS --force oib_testbench.img <<-EOT
+2048,,L
+EOT
+sudo losetup --show -o $((2048 * 512)) -f oib_testbench.img
+sudo mkfs.ext4 /dev/loop0 -L oib_testbench
+sudo mount /dev/loop0 /mnt
+sudo mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "OIB test script v0.1" -d u-boot_oib_testbench.cmd /mnt/boot.scr
+sudo umount /dev/loop0
+sudo losetup -d /dev/loop0
+dd if=u-boot-sunxi-with-spl.bin of=oib_testbench.img bs=1024 seek=8 conv=notrunc 
+mkenvimage -s 131072 -p 0x00 -o u-boot_oib_testbench.env.bin u-boot_oib_testbench.env
+dd if=u-boot_oib_testbench.env.bin of=oib_testbench.img bs=1024 seek=544 conv=notrunc 
