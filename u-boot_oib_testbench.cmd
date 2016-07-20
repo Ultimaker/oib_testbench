@@ -53,6 +53,7 @@ setenv pins_clear 'setenv pin; for pin in ${pins}; do gpio clear ${pin}; done'
 setenv pins_set 'setenv pin; for pin in ${pins}; do gpio set ${pin}; done'
 setenv pins_clear_check 'setenv pin; for pin in ${pins}; do if gpio input ${pin}; then true; else setenv test_status 1; fi; done'
 setenv pin_set_check 'if gpio input ${pin}; then setenv test_status 2; fi'
+setenv print_status 'if test ${test_status} -eq 0; then echo "  Test okay"; else echo "  Test failed"; fi'
 
 # Flash status leds
 setenv flash_status 'setenv pins ${result_leds}; while true; do run pins_set; sleep 1; run pins_clear; sleep 1; done'
@@ -60,37 +61,35 @@ setenv flash_status 'setenv pins ${result_leds}; while true; do run pins_set; sl
 
 # main
 
-echo "Test status: " ${test_status}
-
 # Briefly flash leds
 echo "Starting Olimex Interface Board tests"
 echo "Enabeling status leds to indicate test is running ..."
 setenv pins ${led_pins}
 run pins_set
-echo "Test status: " ${test_status}
+run print_status
 
 # Clear all GPIO's to bring them to a known state.
 echo "Clearing all pins"
 setenv pins ${board_out_pins} ${board_in_pins} ${board_lradc_pins}
 run pins_clear
-echo "Test status: " ${test_status}
+run print_status
 
 # Clear leds
 echo "Clearing leds"
 setenv pins ${led_pins}
 run pins_clear
-echo "Test status: " ${test_status}
+run print_status
 
 # Initialize LRADC
 echo "Init LRADC"
 run lradc_init
-echo "Test status: " ${test_status}
+run print_status
 
 # Verify all pins are clear
 echo "Check all pins if they are low"
 setenv pins ${board_out_normal_pins} ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 # We can verify quirky pins only once, due to the way they are connected,
 # clear it afterwards so we get expected results.
@@ -98,39 +97,43 @@ echo "Checking quirky pins"
 setenv pins ${board_out_quirky_pins}
 run pins_clear_check
 run pins_clear
-echo "Test status: " ${test_status}
+run print_status
 
 # Check LRADC output
 echo "Running LRADC test pins"
 setenv pins ${board_out_normal_pins} ${board_in_pins}
 run lradc_check
 test ${lradc_status} -ne 0 && setenv test_status 1
-echo "Test status: " ${test_status} ${lradc_status}
+run print_status
+
 run pins_clear_check
 gpio set ${board_lradc_pin_0}
 run lradc_check
 test ${lradc_status} -ne 1 && setenv test_status 1
-echo "Test status: " ${test_status} ${lradc_status}
+run print_status
+
 run pins_clear_check
 gpio set ${board_lradc_pin_1}
 run lradc_check
 test ${lradc_status} -ne 2 && setenv test_status 1
-echo "Test status: " ${test_status} ${lradc_status}
+run print_status
+
 run pins_clear_check
 setenv pins ${board_lradc_pin_0} ${board_lradc_pin_1}
 run pins_clear
 run lradc_check
 test ${lradc_status} -ne 0 && setenv test_status 1
-echo "Test status: " ${test_status} ${lradc_status}
+run print_status
+
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Clearing all board pins and checking if they are low"
 setenv pins ${board_pins}
 run pins_clear
 setenv pins ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Checking PG6 -> PB20"
 gpio set "PG6"
@@ -139,11 +142,11 @@ run pin_set_check
 setenv pins "PG7 PB21 PC22 PI0 PI1"
 run pins_clear_check
 gpio clear "PG6"
-echo "Test status: " ${test_status}
+run print_status
 
 setenv pins ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Checking PC20 -> PG7"
 gpio set "PC20"
@@ -152,11 +155,11 @@ run pin_set_check
 setenv pins "PB20 PB21 PC22 PI0 PI1"
 run pins_clear_check
 gpio clear "PC20"
-echo "Test status: " ${test_status}
+run print_status
 
 setenv pins ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Checking PC21 -> PB21"
 gpio set "PC21"
@@ -165,11 +168,11 @@ run pin_set_check
 setenv pins "PB20 PG7 PC22 PI0 PI1"
 run pins_clear_check
 gpio clear "PC21"
-echo "Test status: " ${test_status}
+run print_status
 
 setenv pins ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Checking PC23 -> PC22"
 gpio set "PC23"
@@ -178,11 +181,11 @@ run pin_set_check
 setenv pins "PB20 PG7 PB21 PI0 PI1"
 run pins_clear_check
 gpio clear "PC23"
-echo "Test status: " ${test_status}
+run print_status
 
 setenv pins ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Checking PI13 -> PI0"
 gpio set "PI13"
@@ -191,11 +194,11 @@ run pin_set_check
 setenv pins "PB20 PG7 PB21 PC22 PI1"
 run pins_clear_check
 gpio clear "PI13"
-echo "Test status: " ${test_status}
+run print_status
 
 setenv pins ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Checking PI3 -> PI1"
 gpio set "PI3"
@@ -204,14 +207,14 @@ run pin_set_check
 setenv pins "PB20 PG7 PB21 PC22 PI0"
 run pins_clear_check
 gpio clear "PI3"
-echo "Test status: " ${test_status}
+run print_status
 
 setenv pins ${board_in_pins}
 run pins_clear_check
-echo "Test status: " ${test_status}
+run print_status
 
 echo "Done testing all pins"
 gpio set ${status_led};
-if test ${test_status} -eq 0; then echo "Test okay"; else run flash_status; echo "Test failed"; fi
+if test ${test_status} -eq 0; then echo "All tests okay (Ignore the SCRIPT FAILED message below)."; else run flash_status; echo "One or more tests failed"; fi
 
 exit
