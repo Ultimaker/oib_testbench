@@ -24,3 +24,9 @@ sudo losetup -d /dev/loop0
 dd if=u-boot-sunxi-with-spl.bin of=oib_testbench.img bs=1024 seek=8 conv=notrunc 
 mkenvimage -s 131072 -p 0x00 -o u-boot_oib_testbench.env.bin u-boot_oib_testbench.env
 dd if=u-boot_oib_testbench.env.bin of=oib_testbench.img bs=1024 seek=544 conv=notrunc 
+
+Finally flash the image to the target medium, for example:
+dd if=oid_testbench.img of=/dev/sdc
+
+Note that the partition be unmounted before flashing the image, and to
+properly eject the device after writing.
