@@ -62,153 +62,237 @@ setenv flash_status 'setenv pins ${result_leds}; while true; do run pins_set; sl
 # main
 
 # Briefly flash leds
-echo "Starting Olimex Interface Board tests"
-echo "Enabeling status leds to indicate test is running ..."
+echo "Starting Olimex Interface Board tests ..."
+echo "Enabling status leds to indicate test is running ..."
+echo "Expected output: 3 gpio pins value is 1."
 setenv pins ${led_pins}
 run pins_set
 run print_status
 
 # Clear all GPIO's to bring them to a known state.
-echo "Clearing all pins"
+echo "Clearing all pins ..."
+echo "Expected output: All gpio pins value is 0."
 setenv pins ${board_out_pins} ${board_in_pins} ${board_lradc_pins}
 run pins_clear
 run print_status
 
 # Clear leds
-echo "Clearing leds"
+echo "Clearing leds, indicating test has begun ..."
+echo "Expected output: 3 gpio pins value is 0."
 setenv pins ${led_pins}
 run pins_clear
 run print_status
 
-# Initialize LRADC
-echo "Init LRADC"
+# Initialize LRADC a little early, so that it is ready for the first test later
+echo "Pre-initialize LRADC ..."
+echo "Expected output: No output expected."
 run lradc_init
 run print_status
 
 # Verify all pins are clear
-echo "Check all pins if they are low"
+echo "Checking all pins if they are low ..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_out_normal_pins} ${board_in_pins}
 run pins_clear_check
 run print_status
 
 # We can verify quirky pins only once, due to the way they are connected,
 # clear it afterwards so we get expected results.
-echo "Checking quirky pins"
+echo "Clearing quirky pins (${board_out_quirky_pins}) ..."
+echo "Expected output: quirky pins value is 0."
 setenv pins ${board_out_quirky_pins}
 run pins_clear_check
+echo "Checking quirky pins (${board_out_quirky_pins}) ..."
+echo "Expected output: quirky pins value is 0."
 run pins_clear
 run print_status
 
 # Check LRADC output
-echo "Running LRADC test pins"
+echo "Checking ADC no input ..."
+echo "Expected output: No output expected."
+echo "  If status is failed, ADC value is not low (ADC < 0.75 V)"
 setenv pins ${board_out_normal_pins} ${board_in_pins}
 run lradc_check
 test ${lradc_status} -ne 0 && setenv test_status 1
 run print_status
 
+echo "Checking if all pins are still 0."
+echo "Expected output: All pins value is 0."
 run pins_clear_check
+
+echo "Setting ${board_lradc_pin_0} pin high for ADC test"
 gpio set ${board_lradc_pin_0}
+echo "Check ADC for 1 input ..."
+echo "Expected output: No output expected."
+echo "  If status is failed, ADC value is not medium (0.75 < ADC < 2.5 V)"
 run lradc_check
 test ${lradc_status} -ne 1 && setenv test_status 1
 run print_status
 
+echo "Checking if all pins are still 0."
+echo "Expected output: All pins value is 0."
 run pins_clear_check
+
+echo "Setting ${board_lradc_pin_1} pin high for ADC test"
 gpio set ${board_lradc_pin_1}
+echo "Check ADC for 2 inputs ..."
+echo "Expected output: No output expected."
+echo "  If status is failed, ADC value is not high (2.5 V < ADC)"
 run lradc_check
 test ${lradc_status} -ne 2 && setenv test_status 1
 run print_status
 
+echo "Checking if all pins are still 0."
+echo "Expected output: All pins value is 0."
 run pins_clear_check
+
 setenv pins ${board_lradc_pin_0} ${board_lradc_pin_1}
+echo "Setting pins ${pins} low to finish ADC test"
 run pins_clear
+echo "Check ADC for no input ..."
+echo "Expected output: No output expected."
+echo "  If status is failed, ADC value is not low (ADC < 0.5 V)"
 run lradc_check
 test ${lradc_status} -ne 0 && setenv test_status 1
 run print_status
 
+echo "Checking if both ADC input pins are still 0..."
+echo "Expected output: All pins value is 0."
 run pins_clear_check
 run print_status
 
-echo "Clearing all board pins and checking if they are low"
+echo "Clearing all board pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_pins}
 run pins_clear
+echo "Checking all board input pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_in_pins}
 run pins_clear_check
 run print_status
 
-echo "Checking PG6 -> PB20"
+echo "Checking PG6 (output) -> PB20 (input)"
+echo "  Setting output high ..."
 gpio set "PG6"
+echo "  Checking input is high ..."
+echo "  Expected output: input value is 1."
 setenv pin "PB20"
 run pin_set_check
+echo "  Checking remaining pins ..."
+echo "  Expected output: All pins value is 0."
 setenv pins "PG7 PB21 PC22 PI0 PI1"
 run pins_clear_check
+echo "  Clearing output"
 gpio clear "PG6"
 run print_status
 
+echo "Checking all board input pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_in_pins}
 run pins_clear_check
 run print_status
 
-echo "Checking PC20 -> PG7"
+echo "Checking PC20 (output) -> PG7 (input)"
+echo "  Setting output high ..."
 gpio set "PC20"
+echo "  Checking input is high ..."
+echo "  Expected output: input value is 1."
 setenv pin "PG7"
 run pin_set_check
+echo "  Checking remaining pins ..."
+echo "  Expected output: All pins value is 0."
 setenv pins "PB20 PB21 PC22 PI0 PI1"
 run pins_clear_check
+echo "  Clearing output"
 gpio clear "PC20"
 run print_status
 
+echo "Checking all board input pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_in_pins}
 run pins_clear_check
 run print_status
 
-echo "Checking PC21 -> PB21"
+echo "Checking PC21 (output) -> PB21 (input)"
+echo "  Setting output high ..."
 gpio set "PC21"
+echo "  Checking input is high ..."
+echo "  Expected output: input value is 1."
 setenv pin "PB21"
 run pin_set_check
+echo "  Checking remaining pins ..."
+echo "  Expected output: All pins value is 0."
 setenv pins "PB20 PG7 PC22 PI0 PI1"
 run pins_clear_check
+echo "  Clearing output"
 gpio clear "PC21"
 run print_status
 
+echo "Checking all board input pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_in_pins}
 run pins_clear_check
 run print_status
 
-echo "Checking PC23 -> PC22"
+echo "Checking PC23 (output) -> PC22 (input)"
+echo "  Setting output high ..."
 gpio set "PC23"
+echo "  Checking input is high ..."
+echo "  Expected output: input value is 1."
 setenv pin "PC22"
 run pin_set_check
+echo "  Checking remaining pins ..."
+echo "  Expected output: All pins value is 0."
 setenv pins "PB20 PG7 PB21 PI0 PI1"
 run pins_clear_check
+echo "  Clearing output"
 gpio clear "PC23"
 run print_status
 
+echo "Checking all board input pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_in_pins}
 run pins_clear_check
 run print_status
 
-echo "Checking PI13 -> PI0"
+echo "Checking PI13 (output) -> PI0 (input)"
+echo "  Setting output high ..."
 gpio set "PI13"
+echo "  Checking input is high ..."
+echo "  Expected output: input value is 1."
 setenv pin "PI0"
 run pin_set_check
+echo "  Checking remaining pins ..."
+echo "  Expected output: All pins value is 0."
 setenv pins "PB20 PG7 PB21 PC22 PI1"
 run pins_clear_check
+echo "  Clearing output"
 gpio clear "PI13"
 run print_status
 
+echo "Checking all board input pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_in_pins}
 run pins_clear_check
 run print_status
 
-echo "Checking PI3 -> PI1"
+echo "Checking PI3 (output) -> PI1 (input)"
+echo "  Setting output high ..."
 gpio set "PI3"
+echo "  Checking input is high ..."
+echo "  Expected output: input value is 1."
 setenv pin "PI1"
 run pin_set_check
+echo "  Checking remaining pins ..."
+echo "  Expected output: All pins value is 0."
 setenv pins "PB20 PG7 PB21 PC22 PI0"
 run pins_clear_check
+echo "  Clearing output"
 gpio clear "PI3"
 run print_status
 
+echo "Checking all board input pins..."
+echo "Expected output: All pins value is 0."
 setenv pins ${board_in_pins}
 run pins_clear_check
 run print_status
