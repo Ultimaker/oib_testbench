@@ -21,6 +21,7 @@
 #               |
 #              \ /
 #             LRADC0
+# Note: PH0, PH7 and LRADC0 need to be connected via some resistor devidors.
 #
 # Setup
 setenv test_status 0
@@ -38,8 +39,8 @@ setenv board_in_pins "PB20 PB21 PC22 PG7 PI0 PI1"
 setenv board_pins ${board_out_pins} ${board_in_pins}
 setenv lradc_cfg "0x1C22800" # Low Resolution Analog Dgital Converter cfg register
 setenv lradc_data "0x1C2280C" # LRADC data register
-setenv lradc_top "0x37" # Values above indicate both lradc input pins are high
-setenv lradc_bottom "0x17" # Values above indicates one lradc input pin is high
+setenv lradc_top "0x30" # Values above indicate both lradc input pins are high
+setenv lradc_bottom "0x10" # Values above indicates one lradc input pin is high
 
 # Define some functions
 
@@ -110,7 +111,7 @@ run print_status
 # Check LRADC output
 echo "Checking ADC no input ..."
 echo "Expected output: No output expected."
-echo "  If status is failed, ADC value is not low (ADC < 0.75 V)"
+echo "  If status is failed, ADC value is not low (ADC < 0.5 V)"
 setenv pins ${board_out_normal_pins} ${board_in_pins}
 run lradc_check
 test ${lradc_status} -ne 0 && setenv test_status 1
@@ -124,7 +125,7 @@ echo "Setting ${board_lradc_pin_0} pin high for ADC test"
 gpio set ${board_lradc_pin_0}
 echo "Check ADC for 1 input ..."
 echo "Expected output: No output expected."
-echo "  If status is failed, ADC value is not medium (0.75 < ADC < 2.5 V)"
+echo "  If status is failed, ADC value is not medium (0.5 < ADC < 1.5 V)"
 run lradc_check
 test ${lradc_status} -ne 1 && setenv test_status 1
 run print_status
@@ -137,7 +138,7 @@ echo "Setting ${board_lradc_pin_1} pin high for ADC test"
 gpio set ${board_lradc_pin_1}
 echo "Check ADC for 2 inputs ..."
 echo "Expected output: No output expected."
-echo "  If status is failed, ADC value is not high (2.5 V < ADC)"
+echo "  If status is failed, ADC value is not high (ADC < 1.5 V)"
 run lradc_check
 test ${lradc_status} -ne 2 && setenv test_status 1
 run print_status
